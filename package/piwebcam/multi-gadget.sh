@@ -93,9 +93,17 @@ config_usb_webcam () {
   config_frame mjpeg m 1536  864 30 5 10 15 25 30
   config_frame mjpeg m 1600  900 30 5 10 15 25 30
   config_frame mjpeg m 1920 1080 30 5 10 15 25 30
+  # uncompressed, experimental
+  config_frame uncompressed u  640  480 30 5 10 15 25 30 40
+  config_frame uncompressed u  800  600 30 5 10 15 25 30 40
+  config_frame uncompressed u 1024  768 30 5 10 15 25 30 40
+  config_frame uncompressed u 1280  960 30 5 10 15 25 30
+  config_frame uncompressed u 1440 1080 30 5 10 15 25 30
+  config_frame uncompressed u 1920 1080 30 5 10 15 25 30
 
   mkdir -p functions/uvc.usb0/streaming/header/h
   ln -s functions/uvc.usb0/streaming/mjpeg/m  functions/uvc.usb0/streaming/header/h
+  ln -s functions/uvc.usb0/streaming/uncompressed/u  functions/uvc.usb0/streaming/header/h
   ln -s functions/uvc.usb0/streaming/header/h functions/uvc.usb0/streaming/class/fs
   ln -s functions/uvc.usb0/streaming/header/h functions/uvc.usb0/streaming/class/hs
   ln -s functions/uvc.usb0/control/header/h   functions/uvc.usb0/control/class/fs
@@ -109,6 +117,9 @@ if [ ! -e /dev/video0 ] ; then
   CONFIGURE_USB_WEBCAM=false
   # Nobody can read the error if we don't have serial enabled!
   CONFIGURE_USB_SERIAL=true
+else
+  echo 1920 >/sys/module/bcm2835_v4l2/parameters/max_video_width
+  echo 1080 >/sys/module/bcm2835_v4l2/parameters/max_video_height
 fi
 
 if [ "$CONFIGURE_USB_WEBCAM" = true ] ; then
