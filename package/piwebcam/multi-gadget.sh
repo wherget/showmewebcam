@@ -38,11 +38,29 @@ config_usb_serial () {
   ln -s functions/acm.usb0 configs/c.2/acm.usb0
 }
 
+fps_to_interval() {
+   # dwFrameInterval is in 100ns (fps = 1/(interval * 10_000_000))
+   for fps in $@; do
+     case "$fps" in
+       5)  echo "5000000"; continue;;
+       10) echo "1000000"; continue;;
+       15) echo "666666"; continue;;
+       25) echo "400000"; continue;;
+       30) echo "333333"; continue;;
+       40) echo "250000"; continue;;
+       90) echo "111111"; continue;;
+       *)  exit 1;
+     esac
+   done
+}
+
 config_frame () {
-  FORMAT=$1
-  NAME=$2
-  WIDTH=$3
-  HEIGHT=$4
+  # usage: config_frame (uncompressed u|mjpeg m) <width> <height> <default_fps> <fps>...
+  FORMAT="$1"; shift
+  NAME="$1"; shift
+  WIDTH="$1"; shift
+  HEIGHT="$1"; shift
+  DEFAULT_RATE="$1"; shift
 
   FRAMEDIR="functions/uvc.usb0/streaming/$FORMAT/$NAME/${HEIGHT}p"
 
@@ -50,31 +68,30 @@ config_frame () {
 
   echo "$WIDTH"                    > "$FRAMEDIR"/wWidth
   echo "$HEIGHT"                   > "$FRAMEDIR"/wHeight
-  echo 333333                      > "$FRAMEDIR"/dwDefaultFrameInterval
+  fps_to_interval $DEFAULT_RATE  > "$FRAMEDIR"/dwDefaultFrameInterval
   echo $((WIDTH * HEIGHT * 80))  > "$FRAMEDIR"/dwMinBitRate
   echo $((WIDTH * HEIGHT * 160)) > "$FRAMEDIR"/dwMaxBitRate
   echo $((WIDTH * HEIGHT * 2))   > "$FRAMEDIR"/dwMaxVideoFrameBufferSize
-  cat <<EOF > "$FRAMEDIR"/dwFrameInterval
-333333
-400000
-666666
-EOF
+  fps_to_interval "$@"           > "$FRAMEDIR"/dwFrameInterval
 }
 
 config_usb_webcam () {
   mkdir -p functions/uvc.usb0/control/header/h
 
-  config_frame mjpeg m  640  360
-  config_frame mjpeg m  640  480
-  config_frame mjpeg m  800  600
-  config_frame mjpeg m 1024  768
-  config_frame mjpeg m 1280  720
-  config_frame mjpeg m 1280  960
-  config_frame mjpeg m 1440 1080
-  config_frame mjpeg m 1536  864
-  config_frame mjpeg m 1600  900
-  config_frame mjpeg m 1600 1200
-  config_frame mjpeg m 1920 1080
+  # 4x3
+  config_frame mjpeg m  640  480 30 5 10 15 25 30 40
+  config_frame mjpeg m  800  600 30 5 10 15 25 30 40
+  config_frame mjpeg m 1024  768 30 5 10 15 25 30 40
+  config_frame mjpeg m 1280  960 30 5 10 15 25 30
+  config_frame mjpeg m 1440 1080 30 5 10 15 25 30
+  config_frame mjpeg m 1600 1200 30 5 10 15 25 30
+  # 16x9
+  config_frame mjpeg m  640  360 30 5 10 15 25 30 40
+  config_frame mjpeg m  800  480 30 5 10 15 25 30 40
+  config_frame mjpeg m 1280  720 30 5 10 15 25 30 40
+  config_frame mjpeg m 1536  864 30 5 10 15 25 30
+  config_frame mjpeg m 1600  900 30 5 10 15 25 30
+  config_frame mjpeg m 1920 1080 30 5 10 15 25 30
 
   mkdir -p functions/uvc.usb0/streaming/header/h
   ln -s functions/uvc.usb0/streaming/mjpeg/m  functions/uvc.usb0/streaming/header/h
