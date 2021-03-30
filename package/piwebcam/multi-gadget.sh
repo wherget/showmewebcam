@@ -85,6 +85,7 @@ config_usb_webcam () {
   config_frame mjpeg m 1280  960 30 5 10 15 25 30
   config_frame mjpeg m 1440 1080 30 5 10 15 25 30
   config_frame mjpeg m 1600 1200 30 5 10 15 25 30
+  config_frame mjpeg m 2592 1944 10 5 10 15  # experimental
   # 16x9
   config_frame mjpeg m  640  360 30 5 10 15 25 30 40
   config_frame mjpeg m  800  480 30 5 10 15 25 30 40
